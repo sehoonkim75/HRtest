@@ -72,6 +72,15 @@ details.prompt-box .inner{padding:0 22px 18px}
 .qa-item label{margin-top:8px}
 .qa-item label:first-child{margin-top:0}
 
+/* factor-item: 삭제 버튼을 절대배치 대신 행 옆에 나란히 배치(라벨과 겹침 방지) */
+.factor-item{display:flex;align-items:flex-start;gap:10px}
+.factor-item .row{flex:1;margin:0}
+.factor-item .del-factor{flex:none;margin-top:21px}
+@media (max-width:480px){
+  .factor-item{flex-wrap:wrap}
+  .factor-item .del-factor{margin-top:0}
+}
+
 /* ── batch table ── */
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
@@ -376,14 +385,17 @@ input[readonly]{background:#F3F6FA;color:var(--muted)}
     </div>
   </details>
 
-  <!-- ══ 샘플 리포트 미리보기 ══ -->
-  <details class="prompt-box no-print" id="sampleReportDetails">
-    <summary>샘플 리포트 미리보기 (예시 데이터로 실제 화면 확인)</summary>
-    <div class="inner">
-      <div class="hint" style="margin-bottom:14px">실제 API 호출 없이, 예시 자기소개서와 예시 결과로 생성되는 리포트 형태를 미리 확인할 수 있습니다.</div>
-      <div id="sampleReportBox"></div>
-    </div>
-  </details>
+  <!-- ══ 샘플 리포트 미리보기 (실제 리포트 카드는 인쇄 시 그대로 보이도록 no-print 밖에 배치) ══ -->
+  <div class="card no-print">
+    <h2 style="justify-content:space-between;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleSampleReport()">
+        <span id="sampleToggleIcon">▸</span> 샘플 리포트 미리보기 (예시 데이터로 실제 화면 확인)
+      </span>
+      <button class="btn btn-ghost btn-sm" onclick="downloadSampleReportPDF()">PDF로 다운로드</button>
+    </h2>
+    <div class="hint">실제 API 호출 없이, 예시 자기소개서와 예시 결과로 생성되는 리포트 형태를 미리 확인하거나 PDF로 저장해볼 수 있습니다.</div>
+  </div>
+  <div id="sampleReportBox" class="hidden"></div>
 
   <!-- ══ 탭 ══ -->
   <div class="tabs no-print">
@@ -483,7 +495,6 @@ function addFactorRow(name='', def=''){
   const div = document.createElement('div');
   div.className = 'qa-item factor-item';
   div.innerHTML = `
-    <button class="btn btn-danger btn-sm del" onclick="this.parentElement.remove()">삭제</button>
     <div class="row">
       <div style="max-width:200px">
         <label>평가요소명</label>
@@ -493,7 +504,8 @@ function addFactorRow(name='', def=''){
         <label>정의 / 설명</label>
         <input type="text" class="factor-def" placeholder="이 평가요소가 검증하려는 역량을 간단히 설명">
       </div>
-    </div>`;
+    </div>
+    <button class="btn btn-danger btn-sm del-factor" onclick="this.parentElement.remove()">삭제</button>`;
   div.querySelector('.factor-name').value = name;
   div.querySelector('.factor-def').value = def;
   $('factorList').appendChild(div);
@@ -1242,6 +1254,20 @@ function renderSampleReport(){
   if(box) box.innerHTML = renderReport(SAMPLE_META, SAMPLE_RESULT, false);
 }
 renderSampleReport();
+
+function toggleSampleReport(){
+  const box = $('sampleReportBox');
+  const icon = $('sampleToggleIcon');
+  const opening = box.classList.contains('hidden');
+  box.classList.toggle('hidden');
+  icon.textContent = opening ? '▾' : '▸';
+}
+/* 샘플 리포트를 펼친 뒤 인쇄 대화상자(PDF로 저장)를 바로 띄움 */
+function downloadSampleReportPDF(){
+  const box = $('sampleReportBox');
+  if(box.classList.contains('hidden')) toggleSampleReport();
+  setTimeout(() => window.print(), 150);
+}
 </script>
 </body>
 </html>
